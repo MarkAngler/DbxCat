@@ -21,6 +21,7 @@ function App() {
   const [catalogNames, setCatalogNames] = useState([]);
   const [error, setError] = useState(null);
   const [catNameExpanded, setCatNameExpanded] = useState(null);
+  const [schemaNames, setSchemaNames] = useState({});
 
   useEffect(() => {
     fetch(dbxBaseUrl, dbxRequestOptions)
@@ -48,7 +49,36 @@ function App() {
   }, []);
 
   const handleCatalogueNameClick = (UcName) => {
-    setCatNameExpanded(catNameExpanded === UcName ? null : UcName);
+    if (catNameExpanded !== UcName) {
+      setCatNameExpanded(UcName);
+      if (!schemaNames[UcName]) {
+        const requestOptions = {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            url: 'api/2.1/unity-catalog/schemas',
+            method: 'GET',
+            catalog_name: UcName
+          }),
+        };
+
+        fetch(dbxBaseUrl, requestOptions)
+          .then(response => response.json())
+          .then(data => {
+            if (data && data.schemas) {
+              setSchemaNames(prev => ({ ...prev, [UcName]: data.schemas.map(schema => schema.name) }));
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching schemas:', error);
+          });
+      }
+    } else {
+      setCatNameExpanded(null);
+    }
   };
 
   if (error) {
@@ -59,11 +89,18 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>Catalog Names</h1>
-        <ul>
+        <ul className="catalog-list">
           {catalogNames.map(UcName => (
             <li key={`Uc${UcName}`} onClick={() => handleCatalogueNameClick(UcName)}>
               {UcName}
-              {catNameExpanded === UcName && <div>More details about {UcName}</div>}
+              {catNameExpanded === UcName && (
+                <div>
+                  More details about {UcName}
+                  <ul>
+                    {schemaNames[UcName] && schemaNames[UcName].map(name => <li key={name}>{name}</li>)}
+                  </ul>
+                </div>
+              )}
             </li>
           ))}
         </ul>

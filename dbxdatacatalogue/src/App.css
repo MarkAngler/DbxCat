@@ -1,3 +1,5 @@
+
+
 .App {
   text-align: center;
 }
@@ -27,6 +29,19 @@
 .App-link {
   color: #61dafb;
 }
+
+.catalog-list {
+  list-style-type: none; /* Removes default bullets */
+  padding: 0;
+  margin: 0;
+}
+
+.catalog-list li::before {
+  content: "+ "; /* Adds a plus sign before each list item */
+  color: #000; /* Set the color of the plus sign if needed */
+  font-weight: bold; /* Optional: makes the plus sign bold */
+}
+
 
 @keyframes App-logo-spin {
   from {
