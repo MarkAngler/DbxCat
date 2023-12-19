@@ -82,8 +82,8 @@ function App() {
     }
   };
 
-  const handleSchemaClick = (UcName, schemaName) => {
-    
+  const handleSchemaClick = (event, UcName, schemaName) => {
+    event.stopPropagation();
     const schemaKey = `${UcName}-${schemaName}`; // Unique key for each catalog-schema pair
     if (!tableNames[schemaKey]) {
       const requestOptions = {
@@ -123,7 +123,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>Catalog Names</h1>
-        <ul className="catalog-list">
+        <ul>
           {catalogNames.map(UcName => (
             <li key={`Uc${UcName}`} onClick={() => handleCatalogueNameClick(UcName)}>
               {UcName}
@@ -132,7 +132,7 @@ function App() {
                   More details about {UcName}
                   <ul>
                     {schemaNames[UcName] && schemaNames[UcName].map(schemaName => (
-                      <li key={schemaName} onClick={() => handleSchemaClick(UcName, schemaName)}>
+                      <li key={schemaName} onClick={(event) => handleSchemaClick(event, UcName, schemaName)}>
                         {schemaName}
                         {tableNames[`${UcName}-${schemaName}`] && (
                           <ul>
