@@ -22,6 +22,7 @@ function App() {
   const [error, setError] = useState(null);
   const [catNameExpanded, setCatNameExpanded] = useState(null);
   const [schemaNames, setSchemaNames] = useState({});
+  const [tableNames, setTableNames] = useState({});
 
   useEffect(() => {
     fetch(dbxBaseUrl, dbxRequestOptions)
@@ -81,9 +82,42 @@ function App() {
     }
   };
 
+  const handleSchemaClick = (UcName, schemaName) => {
+    
+    const schemaKey = `${UcName}-${schemaName}`; // Unique key for each catalog-schema pair
+    if (!tableNames[schemaKey]) {
+      const requestOptions = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          url: 'api/2.1/unity-catalog/tables',
+          method: 'GET',
+          catalog_name: UcName,
+          schema_name: schemaName
+        }),
+      };
+
+      fetch(dbxBaseUrl, requestOptions)
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.tables) {
+            setTableNames(prev => ({ ...prev, [schemaKey]: data.tables.map(table => table.name) }));
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching tables:', error);
+        });
+    }
+  };
+
   if (error) {
     return <div>Error: {error}</div>;
   }
+
+  
 
   return (
     <div className="App">
@@ -97,7 +131,16 @@ function App() {
                 <div>
                   More details about {UcName}
                   <ul>
-                    {schemaNames[UcName] && schemaNames[UcName].map(name => <li key={name}>{name}</li>)}
+                    {schemaNames[UcName] && schemaNames[UcName].map(schemaName => (
+                      <li key={schemaName} onClick={() => handleSchemaClick(UcName, schemaName)}>
+                        {schemaName}
+                        {tableNames[`${UcName}-${schemaName}`] && (
+                          <ul>
+                            {tableNames[`${UcName}-${schemaName}`].map(tableName => <li key={tableName}>{tableName}</li>)}
+                          </ul>
+                        )}
+                      </li>
+                    ))}
                   </ul>
                 </div>
               )}
